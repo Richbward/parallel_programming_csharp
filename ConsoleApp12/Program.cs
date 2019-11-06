@@ -10,11 +10,52 @@ namespace ConsoleApp12
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
 
 
-            PizzaTask().GetAwaiter().GetResult();
+            //PizzaTask().GetAwaiter().GetResult();
+            
+            var tasks = Enumerable.Range(1, 3).Select(i => ProcessTask(i));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            Console.WriteLine("All tasks completed");
+        }
+
+        static async Task ProcessTask(int n)
+        {
+            Console.WriteLine("Starting task " + n);
+            await Process(n);
+            Console.WriteLine("\nCompleted task " + n);
+            
+        }
+
+        static async Task Process(int n)
+        {
+            // since this is a UI event, instantiating the Progress class
+            // here will capture the UI thread context
+            var progress = new Progress<int>(i => {
+                //Console.WriteLine($"Task {n} progress: {i}");
+            });
+
+            await ReportWithProgress(progress,n);
+
+            // pass this instance to the background task
+            //Task.Run(() => ReportWithProgress(progress));
+
+        }
+
+        static async Task ReportWithProgress(IProgress<int> p, int n )
+        {
+            for (int i = 0; i <= 100; i++)
+            {
+                //await Task.Run(() => HeavyIO());
+
+                Console.WriteLine($"Task {n} progress: {i}");
+                await Task.Delay(100);
+                //Console.Write(".");
+                p.Report(i);
+            }
         }
 
 
@@ -379,5 +420,7 @@ namespace ConsoleApp12
             //Thread.Sleep(15000); // synchronous 
             Console.WriteLine("Finished baking pizza " + n);
         }
+
+
     }
 }
